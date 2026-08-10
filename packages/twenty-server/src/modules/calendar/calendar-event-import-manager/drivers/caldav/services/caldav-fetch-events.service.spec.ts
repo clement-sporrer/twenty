@@ -352,6 +352,26 @@ describe('CalDavFetchEventsService', () => {
       });
     });
 
+    it('still recognises the collection when the server omits its trailing slash', async () => {
+      const c = buildClient();
+
+      c.davRequest.mockResolvedValue([
+        {
+          href: PRIMARY_URL.replace(/\/$/, ''),
+          status: 401,
+          statusText: 'Unauthorized',
+          ok: false,
+          raw: '<error/>',
+        },
+      ]);
+
+      await expect(
+        service.fetchEventsByHrefs(c.client, [HREF_A]),
+      ).rejects.toMatchObject({
+        code: CalendarEventImportDriverExceptionCode.INSUFFICIENT_PERMISSIONS,
+      });
+    });
+
     it('surfaces a not found driver exception when the collection itself is gone', async () => {
       const c = buildClient();
 
