@@ -1,6 +1,7 @@
 import { type DAVClient } from 'tsdav';
 
 import { CalDavFetchEventsService } from 'src/modules/calendar/calendar-event-import-manager/drivers/caldav/services/caldav-fetch-events.service';
+import { CalendarEventImportDriverExceptionCode } from 'src/modules/calendar/calendar-event-import-manager/drivers/exceptions/calendar-event-import-driver.exception';
 
 const SERVER_URL = 'https://caldav.example.com';
 const PRIMARY_URL = `${SERVER_URL}/calendars/user/primary/`;
@@ -25,7 +26,7 @@ const buildICal = (uid: string, dtStart = '20260601T100000Z') =>
 const buildClient = () => {
   const fetchCalendars = jest.fn();
   const syncCollection = jest.fn();
-  const calendarMultiGet = jest.fn();
+  const davRequest = jest.fn();
   const propfind = jest.fn();
 
   return {
@@ -33,12 +34,12 @@ const buildClient = () => {
       serverUrl: SERVER_URL,
       fetchCalendars,
       syncCollection,
-      calendarMultiGet,
+      davRequest,
       propfind,
     } as unknown as DAVClient,
     fetchCalendars,
     syncCollection,
-    calendarMultiGet,
+    davRequest,
     propfind,
   };
 };
@@ -73,7 +74,7 @@ describe('CalDavFetchEventsService', () => {
 
       expect(result.changedHrefs.sort()).toEqual([HREF_A, HREF_B].sort());
       expect(result.cancelledHrefs).toEqual([]);
-      expect(c.calendarMultiGet).not.toHaveBeenCalled();
+      expect(c.davRequest).not.toHaveBeenCalled();
     });
 
     it('separates cancelled (404) hrefs from changed ones in a sync-collection delta', async () => {
@@ -177,6 +178,31 @@ describe('CalDavFetchEventsService', () => {
       expect(result.syncCursor.syncTokens[PRIMARY_URL]).toBe('token-prior');
     });
 
+    it('keeps a numeric sync-token so the next run is a delta and not a full listing', async () => {
+      const c = buildClient();
+
+      c.fetchCalendars.mockResolvedValue([
+        {
+          url: PRIMARY_URL,
+          components: ['VEVENT'],
+          reports: ['syncCollection'],
+        },
+      ]);
+      c.syncCollection.mockResolvedValue([
+        {
+          href: HREF_A,
+          status: 207,
+          ok: true,
+          props: {},
+          raw: { multistatus: { syncToken: 1786321680 } },
+        },
+      ]);
+
+      const result = await service.fetchChangedEventHrefs(c.client);
+
+      expect(result.syncCursor.syncTokens[PRIMARY_URL]).toBe('1786321680');
+    });
+
     it('omits the sync-token on the first run so the server returns a full listing', async () => {
       const c = buildClient();
 
@@ -203,14 +229,19 @@ describe('CalDavFetchEventsService', () => {
     it('fetches bodies for the given hrefs grouped by calendar collection', async () => {
       const c = buildClient();
 
-      c.calendarMultiGet.mockResolvedValue([
-        { href: HREF_A, props: { calendarData: buildICal('uid-a') } },
+      c.davRequest.mockResolvedValue([
+        {
+          href: HREF_A,
+          status: 200,
+          ok: true,
+          props: { calendarData: buildICal('uid-a') },
+        },
       ]);
 
       const events = await service.fetchEventsByHrefs(c.client, [HREF_A]);
 
-      expect(c.calendarMultiGet).toHaveBeenCalledWith(
-        expect.objectContaining({ url: PRIMARY_URL, objectUrls: [HREF_A] }),
+      expect(c.davRequest).toHaveBeenCalledWith(
+        expect.objectContaining({ url: PRIMARY_URL }),
       );
       expect(events.map((event) => event.iCalUid)).toEqual(['uid-a']);
     });
@@ -218,9 +249,11 @@ describe('CalDavFetchEventsService', () => {
     it('drops events that fall outside the import time window', async () => {
       const c = buildClient();
 
-      c.calendarMultiGet.mockResolvedValue([
+      c.davRequest.mockResolvedValue([
         {
           href: HREF_A,
+          status: 200,
+          ok: true,
           props: { calendarData: buildICal('uid-a', '20990101T100000Z') },
         },
       ]);
@@ -228,6 +261,53 @@ describe('CalDavFetchEventsService', () => {
       const events = await service.fetchEventsByHrefs(c.client, [HREF_A]);
 
       expect(events).toEqual([]);
+    });
+
+    it('keeps importing the batch when a member href was deleted server-side', async () => {
+      const c = buildClient();
+
+      c.davRequest.mockResolvedValue([
+        {
+          href: HREF_B,
+          status: 404,
+          statusText: 'Not Found',
+          ok: false,
+          props: {},
+        },
+        {
+          href: HREF_A,
+          status: 200,
+          ok: true,
+          props: { calendarData: buildICal('uid-a') },
+        },
+      ]);
+
+      const events = await service.fetchEventsByHrefs(c.client, [
+        HREF_A,
+        HREF_B,
+      ]);
+
+      expect(events.map((event) => event.iCalUid)).toEqual(['uid-a']);
+    });
+
+    it('surfaces a not found driver exception when the collection itself is gone', async () => {
+      const c = buildClient();
+
+      c.davRequest.mockResolvedValue([
+        {
+          href: PRIMARY_URL,
+          status: 404,
+          statusText: 'Not Found',
+          ok: false,
+          raw: '<error/>',
+        },
+      ]);
+
+      await expect(
+        service.fetchEventsByHrefs(c.client, [HREF_A]),
+      ).rejects.toMatchObject({
+        code: CalendarEventImportDriverExceptionCode.NOT_FOUND,
+      });
     });
   });
 });
