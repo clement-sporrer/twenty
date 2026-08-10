@@ -290,6 +290,68 @@ describe('CalDavFetchEventsService', () => {
       expect(events.map((event) => event.iCalUid)).toEqual(['uid-a']);
     });
 
+    it('keeps importing the batch when a deleted member carries no props at all', async () => {
+      const c = buildClient();
+
+      c.davRequest.mockResolvedValue([
+        { href: HREF_B, status: 404, statusText: 'Not Found', ok: false },
+        {
+          href: HREF_A,
+          status: 200,
+          ok: true,
+          props: { calendarData: buildICal('uid-a') },
+        },
+      ]);
+
+      const events = await service.fetchEventsByHrefs(c.client, [
+        HREF_A,
+        HREF_B,
+      ]);
+
+      expect(events.map((event) => event.iCalUid)).toEqual(['uid-a']);
+    });
+
+    it('skips a member the server refuses without failing the whole batch', async () => {
+      const c = buildClient();
+
+      c.davRequest.mockResolvedValue([
+        { href: HREF_B, status: 403, statusText: 'Forbidden', ok: false },
+        {
+          href: HREF_A,
+          status: 200,
+          ok: true,
+          props: { calendarData: buildICal('uid-a') },
+        },
+      ]);
+
+      const events = await service.fetchEventsByHrefs(c.client, [
+        HREF_A,
+        HREF_B,
+      ]);
+
+      expect(events.map((event) => event.iCalUid)).toEqual(['uid-a']);
+    });
+
+    it('surfaces an insufficient permissions exception when the whole request is refused', async () => {
+      const c = buildClient();
+
+      c.davRequest.mockResolvedValue([
+        {
+          href: PRIMARY_URL,
+          status: 401,
+          statusText: 'Unauthorized',
+          ok: false,
+          raw: '<error/>',
+        },
+      ]);
+
+      await expect(
+        service.fetchEventsByHrefs(c.client, [HREF_A]),
+      ).rejects.toMatchObject({
+        code: CalendarEventImportDriverExceptionCode.INSUFFICIENT_PERMISSIONS,
+      });
+    });
+
     it('surfaces a not found driver exception when the collection itself is gone', async () => {
       const c = buildClient();
 
