@@ -15,6 +15,9 @@ describe('isUnsubscribeEmail', () => {
   it.each([
     'jane@unsubtle.com',
     'optometry@acme.com',
+    'opt-outreach@acme.com',
+    'optoutlet@acme.com',
+    'unsubscribers-are-us@acme.com',
     'support@acme.com',
     'john.doe@acme.com',
   ])('should not mistake %s for an unsubscribe mailbox', (email) => {

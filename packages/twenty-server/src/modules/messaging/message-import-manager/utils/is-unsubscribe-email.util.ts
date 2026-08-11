@@ -1,6 +1,6 @@
 export const isUnsubscribeEmail = (email: string): boolean => {
   const isUnsubscribePattern =
-    /unsubscribe|opt[.\-_]?out|(^|[@.\-_+])unsub([@.\-_+]|$)/;
+    /(?<![a-z])(unsubscribe|unsub|opt[.\-_]?out)(?![a-z])/;
 
   return isUnsubscribePattern.test(email.toLowerCase());
 };
