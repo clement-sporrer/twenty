@@ -45,7 +45,7 @@ export class CalDavGetEventsService {
         error,
       );
 
-      throw parseCalDAVError(error as Error);
+      throw parseCalDAVError(error);
     }
   }
 }
