@@ -3,6 +3,7 @@ import { type FromTo } from 'twenty-shared/types';
 import { isDefined } from 'twenty-shared/utils';
 
 import { type MetadataUniversalFlatEntity } from 'src/engine/metadata-modules/flat-entity/types/metadata-universal-flat-entity.type';
+import { isSystemSideEffectFlatEntity } from 'src/engine/metadata-modules/flat-entity/utils/is-system-side-effect-flat-entity.util';
 import { type MetadataUniversalFlatEntityMaps } from 'src/engine/workspace-manager/workspace-migration/universal-flat-entity/types/metadata-universal-flat-entity-maps.type';
 import { type UniversalFlatEntityUpdate } from 'src/engine/workspace-manager/workspace-migration/universal-flat-entity/types/universal-flat-entity-update.type';
 import { compareTwoFlatEntity } from 'src/engine/workspace-manager/workspace-migration/universal-flat-entity/utils/compare-two-universal-flat-entity.util';
@@ -54,6 +55,13 @@ export const flatEntityDeletedCreatedUpdatedMatrixDispatcher = <
   if (shouldInferDeletionFromMissingEntities({ buildOptions, metadataName })) {
     for (const [universalIdentifier, fromEntity] of fromMap) {
       if (toMap.has(universalIdentifier)) {
+        continue;
+      }
+
+      if (
+        buildOptions.excludeSystemSideEffectFromInferredDeletion === true &&
+        isSystemSideEffectFlatEntity(fromEntity)
+      ) {
         continue;
       }
 

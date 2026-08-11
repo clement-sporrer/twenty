@@ -92,6 +92,21 @@ export const fromDeleteFieldInputToFlatFieldMetadatasToDelete = ({
       flatObjectMetadata,
     });
 
+  const protectedRelatedFlatFieldMetadata =
+    relatedFlatFieldMetadataToDelete.find(
+      (relatedFlatFieldMetadata) =>
+        belongsToTwentyStandardApp(relatedFlatFieldMetadata) ||
+        relatedFlatFieldMetadata.isSystem ||
+        relatedFlatFieldMetadata.isSystemSideEffect === true,
+    );
+
+  if (isDefined(protectedRelatedFlatFieldMetadata)) {
+    throw new FieldMetadataException(
+      `Cannot delete field "${flatFieldMetadataToDelete.name}": it would cascade to system-managed field "${protectedRelatedFlatFieldMetadata.name}"`,
+      FieldMetadataExceptionCode.FIELD_MUTATION_NOT_ALLOWED,
+    );
+  }
+
   const flatFieldMetadatasToDelete = [
     flatFieldMetadataToDelete,
     ...relatedFlatFieldMetadataToDelete,

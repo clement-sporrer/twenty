@@ -74,6 +74,7 @@ export class TwentyStandardApplicationService {
           buildOptions: {
             isSystemBuild: true,
             inferDeletionFromMissingEntities: true,
+            excludeSystemSideEffectFromInferredDeletion: true,
             applicationUniversalIdentifier:
               twentyStandardFlatApplication.universalIdentifier,
           },

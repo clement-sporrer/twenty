@@ -276,6 +276,72 @@ exports[`flatEntityDeletedCreatedUpdatedMatrixDispatcher It should detect create
 }
 `;
 
+exports[`flatEntityDeletedCreatedUpdatedMatrixDispatcher It should infer deletion of a system side effect entity missing from to by default 1`] = `
+{
+  "createdFlatEntityMaps": {
+    "byUniversalIdentifier": {},
+  },
+  "deletedFlatEntityMaps": {
+    "byUniversalIdentifier": {
+      "universal-identifier-1": {
+        "applicationId": "application-id-1",
+        "applicationUniversalIdentifier": "application-universal-identifier-1",
+        "calendarEndViewIds": [],
+        "calendarEndViewUniversalIdentifiers": [],
+        "calendarViewIds": [],
+        "calendarViewUniversalIdentifiers": [],
+        "createdAt": "2024-01-01T00:00:00.000Z",
+        "defaultValue": null,
+        "description": "default flat field metadata description",
+        "fieldPermissionIds": [],
+        "fieldPermissionUniversalIdentifiers": [],
+        "icon": "icon",
+        "id": "field-id-1",
+        "isActive": true,
+        "isLabelSyncedWithName": false,
+        "isNullable": true,
+        "isSystem": false,
+        "isSystemSideEffect": true,
+        "isUIEditable": true,
+        "isUnique": false,
+        "kanbanAggregateOperationViewIds": [],
+        "kanbanAggregateOperationViewUniversalIdentifiers": [],
+        "label": "flat field metadata label",
+        "mainGroupByFieldMetadataViewIds": [],
+        "mainGroupByFieldMetadataViewUniversalIdentifiers": [],
+        "morphId": null,
+        "name": "flatFieldMetadataName",
+        "objectMetadataId": "object-metadata-id-1",
+        "objectMetadataUniversalIdentifier": "object-metadata-universal-identifier-1",
+        "options": null,
+        "overrides": null,
+        "relationTargetFieldMetadataId": null,
+        "relationTargetFieldMetadataUniversalIdentifier": null,
+        "relationTargetObjectMetadataId": null,
+        "relationTargetObjectMetadataUniversalIdentifier": null,
+        "searchFieldMetadataIds": [],
+        "searchFieldMetadataUniversalIdentifiers": [],
+        "settings": null,
+        "type": "TEXT",
+        "universalIdentifier": "universal-identifier-1",
+        "universalSettings": null,
+        "updatedAt": "2024-01-01T00:00:00.000Z",
+        "viewFieldIds": [],
+        "viewFieldUniversalIdentifiers": [],
+        "viewFilterIds": [],
+        "viewFilterUniversalIdentifiers": [],
+        "viewSortIds": [],
+        "viewSortUniversalIdentifiers": [],
+        "workspaceId": "workspace-id-1",
+      },
+    },
+  },
+  "updatedFlatEntityMaps": {
+    "byUniversalIdentifier": {},
+  },
+}
+`;
+
 exports[`flatEntityDeletedCreatedUpdatedMatrixDispatcher It should not detect deleted entities when inferDeletionFromMissingEntities is false 1`] = `
 {
   "createdFlatEntityMaps": {
@@ -283,6 +349,72 @@ exports[`flatEntityDeletedCreatedUpdatedMatrixDispatcher It should not detect de
   },
   "deletedFlatEntityMaps": {
     "byUniversalIdentifier": {},
+  },
+  "updatedFlatEntityMaps": {
+    "byUniversalIdentifier": {},
+  },
+}
+`;
+
+exports[`flatEntityDeletedCreatedUpdatedMatrixDispatcher It should not infer deletion of a system side effect entity missing from to when excludeSystemSideEffectFromInferredDeletion is true 1`] = `
+{
+  "createdFlatEntityMaps": {
+    "byUniversalIdentifier": {},
+  },
+  "deletedFlatEntityMaps": {
+    "byUniversalIdentifier": {
+      "universal-identifier-2": {
+        "applicationId": "application-id-1",
+        "applicationUniversalIdentifier": "application-universal-identifier-1",
+        "calendarEndViewIds": [],
+        "calendarEndViewUniversalIdentifiers": [],
+        "calendarViewIds": [],
+        "calendarViewUniversalIdentifiers": [],
+        "createdAt": "2024-01-01T00:00:00.000Z",
+        "defaultValue": null,
+        "description": "default flat field metadata description",
+        "fieldPermissionIds": [],
+        "fieldPermissionUniversalIdentifiers": [],
+        "icon": "icon",
+        "id": "field-id-2",
+        "isActive": true,
+        "isLabelSyncedWithName": false,
+        "isNullable": true,
+        "isSystem": false,
+        "isSystemSideEffect": false,
+        "isUIEditable": true,
+        "isUnique": false,
+        "kanbanAggregateOperationViewIds": [],
+        "kanbanAggregateOperationViewUniversalIdentifiers": [],
+        "label": "flat field metadata label",
+        "mainGroupByFieldMetadataViewIds": [],
+        "mainGroupByFieldMetadataViewUniversalIdentifiers": [],
+        "morphId": null,
+        "name": "flatFieldMetadataName",
+        "objectMetadataId": "object-metadata-id-1",
+        "objectMetadataUniversalIdentifier": "object-metadata-universal-identifier-1",
+        "options": null,
+        "overrides": null,
+        "relationTargetFieldMetadataId": null,
+        "relationTargetFieldMetadataUniversalIdentifier": null,
+        "relationTargetObjectMetadataId": null,
+        "relationTargetObjectMetadataUniversalIdentifier": null,
+        "searchFieldMetadataIds": [],
+        "searchFieldMetadataUniversalIdentifiers": [],
+        "settings": null,
+        "type": "TEXT",
+        "universalIdentifier": "universal-identifier-2",
+        "universalSettings": null,
+        "updatedAt": "2024-01-01T00:00:00.000Z",
+        "viewFieldIds": [],
+        "viewFieldUniversalIdentifiers": [],
+        "viewFilterIds": [],
+        "viewFilterUniversalIdentifiers": [],
+        "viewSortIds": [],
+        "viewSortUniversalIdentifiers": [],
+        "workspaceId": "workspace-id-1",
+      },
+    },
   },
   "updatedFlatEntityMaps": {
     "byUniversalIdentifier": {},

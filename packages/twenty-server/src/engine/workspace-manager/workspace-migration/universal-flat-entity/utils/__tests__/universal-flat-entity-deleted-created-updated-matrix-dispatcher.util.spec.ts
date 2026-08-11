@@ -219,6 +219,81 @@ describe('flatEntityDeletedCreatedUpdatedMatrixDispatcher', () => {
         },
       },
     },
+    {
+      title:
+        'It should infer deletion of a system side effect entity missing from to by default',
+      context: {
+        from: [
+          getFlatFieldMetadataMock({
+            objectMetadataId: 'object-metadata-id-1',
+            type: FieldMetadataType.TEXT,
+            universalIdentifier: 'universal-identifier-1',
+            id: 'field-id-1',
+            workspaceId: 'workspace-id-1',
+            applicationId: 'application-id-1',
+            createdAt: '2024-01-01T00:00:00.000Z',
+            updatedAt: '2024-01-01T00:00:00.000Z',
+            isSystemSideEffect: true,
+            applicationUniversalIdentifier:
+              'application-universal-identifier-1',
+            objectMetadataUniversalIdentifier:
+              'object-metadata-universal-identifier-1',
+          }),
+        ],
+        to: [],
+        metadataName: 'fieldMetadata',
+        buildOptions: {
+          inferDeletionFromMissingEntities: { fieldMetadata: true },
+          isSystemBuild: true,
+          applicationUniversalIdentifier: 'application-universal-identifier-1',
+        },
+      },
+    },
+    {
+      title:
+        'It should not infer deletion of a system side effect entity missing from to when excludeSystemSideEffectFromInferredDeletion is true',
+      context: {
+        from: [
+          getFlatFieldMetadataMock({
+            objectMetadataId: 'object-metadata-id-1',
+            type: FieldMetadataType.TEXT,
+            universalIdentifier: 'universal-identifier-1',
+            id: 'field-id-1',
+            workspaceId: 'workspace-id-1',
+            applicationId: 'application-id-1',
+            createdAt: '2024-01-01T00:00:00.000Z',
+            updatedAt: '2024-01-01T00:00:00.000Z',
+            isSystemSideEffect: true,
+            applicationUniversalIdentifier:
+              'application-universal-identifier-1',
+            objectMetadataUniversalIdentifier:
+              'object-metadata-universal-identifier-1',
+          }),
+          getFlatFieldMetadataMock({
+            objectMetadataId: 'object-metadata-id-1',
+            type: FieldMetadataType.TEXT,
+            universalIdentifier: 'universal-identifier-2',
+            id: 'field-id-2',
+            workspaceId: 'workspace-id-1',
+            applicationId: 'application-id-1',
+            createdAt: '2024-01-01T00:00:00.000Z',
+            updatedAt: '2024-01-01T00:00:00.000Z',
+            applicationUniversalIdentifier:
+              'application-universal-identifier-1',
+            objectMetadataUniversalIdentifier:
+              'object-metadata-universal-identifier-1',
+          }),
+        ],
+        to: [],
+        metadataName: 'fieldMetadata',
+        buildOptions: {
+          inferDeletionFromMissingEntities: { fieldMetadata: true },
+          excludeSystemSideEffectFromInferredDeletion: true,
+          isSystemBuild: true,
+          applicationUniversalIdentifier: 'application-universal-identifier-1',
+        },
+      },
+    },
   ] as EachTestingContext<TestContext>[];
 
   test.each(eachTestingContextFilter(testCases))(

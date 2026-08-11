@@ -162,4 +162,74 @@ describe('fromDeleteFieldInputToFlatFieldMetadatasToDelete', () => {
       }),
     );
   });
+
+  it('should throw FIELD_MUTATION_NOT_ALLOWED when deleting a morph relation leg whose sibling is a system side effect', () => {
+    const hostObjectId = 'obj-1';
+    const targetObjectId = 'obj-2';
+
+    const inputLeg = getFlatFieldMetadataMock({
+      universalIdentifier: 'input-leg-uid',
+      id: 'input-leg-id',
+      objectMetadataId: hostObjectId,
+      type: FieldMetadataType.MORPH_RELATION,
+      name: 'targetCustomObject',
+      morphId: 'morph-id-1',
+      relationTargetFieldMetadataId: 'forward-input-id',
+      relationTargetObjectMetadataId: targetObjectId,
+    });
+    const protectedSiblingLeg = getFlatFieldMetadataMock({
+      universalIdentifier: 'protected-sibling-leg-uid',
+      id: 'protected-sibling-leg-id',
+      objectMetadataId: hostObjectId,
+      type: FieldMetadataType.MORPH_RELATION,
+      name: 'targetPerson',
+      morphId: 'morph-id-1',
+      isSystemSideEffect: true,
+      relationTargetFieldMetadataId: 'forward-sibling-id',
+      relationTargetObjectMetadataId: targetObjectId,
+    });
+    const forwardInput = getFlatFieldMetadataMock({
+      universalIdentifier: 'forward-input-uid',
+      id: 'forward-input-id',
+      objectMetadataId: targetObjectId,
+      type: FieldMetadataType.RELATION,
+      relationTargetFieldMetadataId: inputLeg.id,
+      relationTargetObjectMetadataId: hostObjectId,
+    });
+    const forwardSibling = getFlatFieldMetadataMock({
+      universalIdentifier: 'forward-sibling-uid',
+      id: 'forward-sibling-id',
+      objectMetadataId: targetObjectId,
+      type: FieldMetadataType.RELATION,
+      relationTargetFieldMetadataId: protectedSiblingLeg.id,
+      relationTargetObjectMetadataId: hostObjectId,
+    });
+
+    const hostFlatObjectMetadata = getFlatObjectMetadataMock({
+      universalIdentifier: hostObjectId,
+      id: hostObjectId,
+      fieldIds: [inputLeg.id, protectedSiblingLeg.id],
+    });
+
+    expect(() =>
+      fromDeleteFieldInputToFlatFieldMetadatasToDelete({
+        deleteOneFieldInput: { id: inputLeg.id },
+        flatFieldMetadataMaps: buildFlatFieldMetadataMaps([
+          inputLeg,
+          protectedSiblingLeg,
+          forwardInput,
+          forwardSibling,
+        ]),
+        flatObjectMetadataMaps: addFlatEntityToFlatEntityMapsOrThrow({
+          flatEntity: hostFlatObjectMetadata,
+          flatEntityMaps: createEmptyFlatEntityMaps(),
+        }),
+        flatIndexMaps: createEmptyFlatEntityMaps(),
+      }),
+    ).toThrow(
+      new RegExp(
+        'Cannot delete field "targetCustomObject": it would cascade to system-managed field "targetPerson"',
+      ),
+    );
+  });
 });
