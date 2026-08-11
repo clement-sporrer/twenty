@@ -14,6 +14,7 @@ import { findFlatEntityByUniversalIdentifierOrThrow } from 'src/engine/metadata-
 import { findManyFlatEntityByUniversalIdentifierInUniversalFlatEntityMapsOrThrow } from 'src/engine/metadata-modules/flat-entity/utils/find-many-flat-entity-by-universal-identifier-in-universal-flat-entity-maps-or-throw.util';
 import { computeFlatFieldMetadataRelatedFlatFieldMetadata } from 'src/engine/metadata-modules/flat-field-metadata/utils/compute-flat-field-metadata-related-flat-field-metadata.util';
 import { isMorphOrRelationFlatFieldMetadata } from 'src/engine/metadata-modules/flat-field-metadata/utils/is-morph-or-relation-flat-field-metadata.util';
+import { isProtectedFlatFieldMetadata } from 'src/engine/metadata-modules/flat-field-metadata/utils/is-protected-flat-field-metadata.util';
 import { type FlatIndexMetadata } from 'src/engine/metadata-modules/flat-index-metadata/types/flat-index-metadata.type';
 import { isSystemUniqueFlatIndexMetadata } from 'src/engine/metadata-modules/flat-index-metadata/utils/is-system-unique-flat-index-metadata.util';
 import { generateFlatIndexMetadataWithNameOrThrow } from 'src/engine/metadata-modules/index-metadata/utils/generate-flat-index.util';
@@ -93,16 +94,11 @@ export const fromDeleteFieldInputToFlatFieldMetadatasToDelete = ({
     });
 
   const protectedRelatedFlatFieldMetadata =
-    relatedFlatFieldMetadataToDelete.find(
-      (relatedFlatFieldMetadata) =>
-        belongsToTwentyStandardApp(relatedFlatFieldMetadata) ||
-        relatedFlatFieldMetadata.isSystem ||
-        relatedFlatFieldMetadata.isSystemSideEffect === true,
-    );
+    relatedFlatFieldMetadataToDelete.find(isProtectedFlatFieldMetadata);
 
   if (isDefined(protectedRelatedFlatFieldMetadata)) {
     throw new FieldMetadataException(
-      `Cannot delete field "${flatFieldMetadataToDelete.name}": it would cascade to system-managed field "${protectedRelatedFlatFieldMetadata.name}"`,
+      `Cannot delete field "${flatFieldMetadataToDelete.name}": it would cascade to protected field "${protectedRelatedFlatFieldMetadata.name}"`,
       FieldMetadataExceptionCode.FIELD_MUTATION_NOT_ALLOWED,
     );
   }

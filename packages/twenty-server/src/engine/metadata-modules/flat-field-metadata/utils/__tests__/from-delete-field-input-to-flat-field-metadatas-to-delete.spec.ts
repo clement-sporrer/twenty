@@ -228,7 +228,7 @@ describe('fromDeleteFieldInputToFlatFieldMetadatasToDelete', () => {
       }),
     ).toThrow(
       new RegExp(
-        'Cannot delete field "targetCustomObject": it would cascade to system-managed field "targetPerson"',
+        'Cannot delete field "targetCustomObject": it would cascade to protected field "targetPerson"',
       ),
     );
   });
