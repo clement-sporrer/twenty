@@ -232,4 +232,76 @@ describe('fromDeleteFieldInputToFlatFieldMetadatasToDelete', () => {
       ),
     );
   });
+
+  it('should allow deletion of a morph relation leg when all siblings are user-owned', () => {
+    const hostObjectId = 'obj-1';
+    const targetObjectId = 'obj-2';
+
+    const inputLeg = getFlatFieldMetadataMock({
+      universalIdentifier: 'input-leg-uid',
+      id: 'input-leg-id',
+      objectMetadataId: hostObjectId,
+      type: FieldMetadataType.MORPH_RELATION,
+      name: 'targetFirstObject',
+      morphId: 'morph-id-1',
+      relationTargetFieldMetadataId: 'forward-input-id',
+      relationTargetObjectMetadataId: targetObjectId,
+    });
+    const siblingLeg = getFlatFieldMetadataMock({
+      universalIdentifier: 'sibling-leg-uid',
+      id: 'sibling-leg-id',
+      objectMetadataId: hostObjectId,
+      type: FieldMetadataType.MORPH_RELATION,
+      name: 'targetSecondObject',
+      morphId: 'morph-id-1',
+      relationTargetFieldMetadataId: 'forward-sibling-id',
+      relationTargetObjectMetadataId: targetObjectId,
+    });
+    const forwardInput = getFlatFieldMetadataMock({
+      universalIdentifier: 'forward-input-uid',
+      id: 'forward-input-id',
+      objectMetadataId: targetObjectId,
+      type: FieldMetadataType.RELATION,
+      relationTargetFieldMetadataId: inputLeg.id,
+      relationTargetObjectMetadataId: hostObjectId,
+    });
+    const forwardSibling = getFlatFieldMetadataMock({
+      universalIdentifier: 'forward-sibling-uid',
+      id: 'forward-sibling-id',
+      objectMetadataId: targetObjectId,
+      type: FieldMetadataType.RELATION,
+      relationTargetFieldMetadataId: siblingLeg.id,
+      relationTargetObjectMetadataId: hostObjectId,
+    });
+
+    const hostFlatObjectMetadata = getFlatObjectMetadataMock({
+      universalIdentifier: hostObjectId,
+      id: hostObjectId,
+      fieldIds: [inputLeg.id, siblingLeg.id],
+    });
+
+    const result = fromDeleteFieldInputToFlatFieldMetadatasToDelete({
+      deleteOneFieldInput: { id: inputLeg.id },
+      flatFieldMetadataMaps: buildFlatFieldMetadataMaps([
+        inputLeg,
+        siblingLeg,
+        forwardInput,
+        forwardSibling,
+      ]),
+      flatObjectMetadataMaps: addFlatEntityToFlatEntityMapsOrThrow({
+        flatEntity: hostFlatObjectMetadata,
+        flatEntityMaps: createEmptyFlatEntityMaps(),
+      }),
+      flatIndexMaps: createEmptyFlatEntityMaps(),
+    });
+
+    expect(
+      result.flatFieldMetadatasToDelete.map(({ id }) => id).sort(),
+    ).toEqual([
+      'forward-input-id',
+      'forward-sibling-id',
+      'input-leg-id',
+      'sibling-leg-id',
+    ]);
+  });
 });
